@@ -49,9 +49,18 @@ To confirm that Redis is running correctly, use the command `redis-cli ping`. Yo
 
 ### Installation and Setup
 
-1.  **Clone the repository** and navigate to the `backend` directory.
-2.  **Install dependencies**: `bash     npm install`
-3.  **Set up your environment variables**: Run the quickstart script to automatically create a `.env` file and be prompted for your Gemini API key: `bash     npm run quickstart`
+1.  **Clone the repository** and navigate to the `backend` directory using:
+    ``` bash
+    cd backend
+    ```
+2.  **Install dependencies**: 
+    ```bash     
+    npm install
+    ```
+3.  **Set up your environment variables**: Run the quickstart script to automatically create a `.env` file and be prompted for your Gemini API key: 
+    ```bash     
+    npm run quickstart
+    ```
 
 ### Running the Application
 
@@ -76,16 +85,37 @@ To confirm that Redis is running correctly, use the command `redis-cli ping`. Yo
 -   **POST** `/api/research`
 -   **Description**: Initiates a new research job.
 -   **Request Body**:
-    `json     {       "query": "Your research query here"     }`
+    ```
+    json     
+    {       
+        "query": "Your research query here"     
+    }
+    ```
 -   **Response** (202 Accepted):
-    `json     {       "jobId": "a-unique-uuid",       "status": "queued",       "message": "Research job has been queued"     }`
+    ```
+    json     
+    {       
+        "jobId": "a-unique-uuid",       
+        "status": "queued",       
+        "message": "Research job has been queued"     
+    }
+    ```
 
 ### **Check Job Status**
 
 -   **GET** `/api/research/status/:jobId`
 -   **Description**: Checks the status of a research job.
 -   **Response** (200 OK):
-    `json     {       "jobId": "a-unique-uuid",       "status": "processing",       "progress": 50,       "createdAt": "2023-10-27T10:00:00.000Z",       "updatedAt": "2023-10-27T10:05:00.000Z"     }`
+    ```
+    json     
+    {       
+        "jobId": "a-unique-uuid",       
+        "status": "processing",       
+        "progress": 50,       
+        "createdAt": "2023-10-27T10:00:00.000Z",       
+        "updatedAt": "2023-10-27T10:05:00.000Z"     
+    }
+    ```
 
 ### **Get Research Results**
 
@@ -100,7 +130,9 @@ To confirm that Redis is running correctly, use the command `redis-cli ping`. Yo
 -   **Start a job**:
 
     ``` bash
-    curl -X POST http://localhost:3000/api/research       -H "Content-Type: application/json"       -d '{"query": "The impact of AI on modern education"}'
+    curl -X POST http://localhost:3000/api/research       
+    -H "Content-Type: application/json"       
+    -d '{"query": "The impact of AI on modern education"}'
     ```
 
 -   **Check status**:
