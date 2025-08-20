@@ -30,11 +30,11 @@ const expandQuery = async (query) => {
       
       User Query: "${query}"
       
-      Please identify 3-5 specific subtopics or research areas related to this query that would be valuable to explore.
+      Please identify 2 specific subtopics or research areas related to this query that would be valuable to explore.
       Focus on academic relevance and current research directions.
       
       Format your response as a JSON array of strings, with each string being a specific research subtopic.
-      Example: ["Topic 1", "Topic 2", "Topic 3"]
+      Example: ["Topic 1", "Topic 2"]
     `;
 
     debug("Sending prompt to Gemini API");
@@ -132,22 +132,17 @@ const generateResearchAnalysis = async (originalQuery, processedPapers) => {
           {
             "topic": "Topic name",
             "findings": "Key findings for this topic (100-150 words)"
-          },
-          // More topics...
+          }
         ],
         "methodologies": {
           "common": ["List of common methodologies used across papers"],
           "emerging": ["List of newer or emerging methodologies"]
         },
         "researchGaps": [
-          "Gap 1 description",
-          "Gap 2 description",
-          // More gaps...
+          "Gap 1 description"
         ],
         "futureDirections": [
-          "Future direction 1",
-          "Future direction 2",
-          // More future directions...
+          "Future direction 1"
         ],
         "keyPapers": [
           {
@@ -156,8 +151,7 @@ const generateResearchAnalysis = async (originalQuery, processedPapers) => {
             "year": "Publication year",
             "summary": "Brief summary of importance (50-75 words)",
             "citation": "Full citation in APA format"
-          },
-          // 3-5 key papers...
+          }
         ],
         "comparativeAnalysis": "Analysis comparing different approaches or findings across papers (200-250 words)"
       }
