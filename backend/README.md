@@ -9,6 +9,38 @@ Backend service for the Research Assistant application that processes research q
 - Node.js (v14 or later)
 - npm or yarn
 - Google Gemini API key
+- Redis (required for job queue)
+
+#### Redis Installation
+
+**Windows:**
+
+1. Download and install Redis for Windows from [https://github.com/microsoftarchive/redis/releases](https://github.com/microsoftarchive/redis/releases)
+2. Or use WSL2 to install Redis using the Linux instructions
+3. Alternatively, use Docker: `docker run --name redis -p 6379:6379 -d redis`
+
+**macOS:**
+
+```
+brew install redis
+brew services start redis
+```
+
+**Linux (Ubuntu/Debian):**
+
+```
+sudo apt update
+sudo apt install redis-server
+sudo systemctl start redis-server
+```
+
+To verify Redis is running:
+
+```
+redis-cli ping
+```
+
+Should return `PONG`
 
 ### Installation
 
@@ -234,3 +266,43 @@ The API uses standard HTTP status codes to indicate success or failure:
 - Google Scholar scraping may be blocked if too many requests are made from the same IP address
 - Only freely available PDFs can be downloaded and processed
 - The Gemini API has rate limits that may affect processing time
+
+## Troubleshooting
+
+### Redis Connection Issues
+
+If you see errors like `Error: Redis connection to 127.0.0.1:6379 failed`, make sure:
+
+1. Redis server is running
+2. The port is not blocked by a firewall
+3. The REDIS_URL in your .env file is correct
+
+### Google Scholar Scraping Issues
+
+If you encounter CAPTCHA errors:
+
+1. Try using a different IP address (VPN or proxy)
+2. Reduce the frequency of requests
+3. Modify the user agent in scholarScraperService.js
+
+### Debugging
+
+To enable debug logs, set the DEBUG environment variable:
+
+```
+# Windows PowerShell
+$env:DEBUG="researchai:*"
+
+# Linux/macOS
+export DEBUG="researchai:*"
+```
+
+You can also enable specific debug namespaces:
+
+```
+# Only controller and Gemini API logs
+export DEBUG="researchai:controller,researchai:gemini"
+
+# Only Google Scholar scraper logs
+export DEBUG="researchai:scholar"
+```

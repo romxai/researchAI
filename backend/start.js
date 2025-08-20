@@ -51,22 +51,39 @@ if (!fs.existsSync(envPath)) {
 }
 
 function startServer() {
-  console.log("Starting server...");
+  console.log("Checking Redis connection...");
 
-  // Start the server using npm run dev
-  const server = spawn("npm", ["run", "dev"], {
+  // Check if Redis is running
+  const redisCheck = spawn("npm", ["run", "test-redis"], {
     stdio: "inherit",
     shell: true,
   });
 
-  server.on("error", (error) => {
-    console.error("Failed to start server:", error);
-  });
+  redisCheck.on("close", (code) => {
+    if (code !== 0) {
+      console.error("Redis check failed. Please make sure Redis is running.");
+      console.log("See the README.md for Redis installation instructions.");
+      console.log("To bypass this check, run 'npm run dev' directly.");
+      process.exit(1);
+    }
 
-  // Handle SIGINT (Ctrl+C) to gracefully shut down
-  process.on("SIGINT", () => {
-    console.log("Shutting down server...");
-    server.kill("SIGINT");
-    process.exit(0);
+    console.log("\nStarting server...");
+
+    // Start the server using npm run dev
+    const server = spawn("npm", ["run", "dev"], {
+      stdio: "inherit",
+      shell: true,
+    });
+
+    server.on("error", (error) => {
+      console.error("Failed to start server:", error);
+    });
+
+    // Handle SIGINT (Ctrl+C) to gracefully shut down
+    process.on("SIGINT", () => {
+      console.log("Shutting down server...");
+      server.kill("SIGINT");
+      process.exit(0);
+    });
   });
 }

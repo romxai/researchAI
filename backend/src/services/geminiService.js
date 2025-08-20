@@ -1,10 +1,21 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const debug = require("debug")("researchai:gemini");
 
 // Initialize Gemini API
-const genAI = new GoogleGenerativeAI(
-  process.env.GEMINI_API_KEY || "your-api-key-here"
-);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const apiKey = process.env.GEMINI_API_KEY || "your-api-key-here";
+if (apiKey === "your-api-key-here") {
+  debug(
+    "WARNING: Using placeholder Gemini API key. Set GEMINI_API_KEY in .env file"
+  );
+  console.warn(
+    "WARNING: Using placeholder Gemini API key. Set GEMINI_API_KEY in .env file"
+  );
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+debug("Gemini service initialized");
 
 /**
  * Expand a user query into relevant research topics using Gemini
@@ -12,6 +23,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro" });
  * @returns {Promise<string[]>} - Array of expanded research topics
  */
 const expandQuery = async (query) => {
+  debug("Expanding query: %s", query);
   try {
     const prompt = `
       You are a research assistant helping to expand a research query into relevant subtopics for academic research.
@@ -25,19 +37,34 @@ const expandQuery = async (query) => {
       Example: ["Topic 1", "Topic 2", "Topic 3"]
     `;
 
+    debug("Sending prompt to Gemini API");
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
+    debug(
+      "Received response from Gemini API: %s",
+      text.substring(0, 200) + (text.length > 200 ? "..." : "")
+    );
 
     // Extract JSON array from response
     const jsonMatch = text.match(/\[.*\]/s);
     if (!jsonMatch) {
+      debug("Failed to parse topics from Gemini response: %s", text);
       throw new Error("Failed to parse topics from Gemini response");
     }
 
-    const topics = JSON.parse(jsonMatch[0]);
-    return topics;
+    try {
+      const topics = JSON.parse(jsonMatch[0]);
+      debug("Successfully parsed topics: %O", topics);
+      return topics;
+    } catch (parseError) {
+      debug("JSON parse error for topics: %O", parseError);
+      throw new Error(
+        `Failed to parse JSON from Gemini response: ${parseError.message}`
+      );
+    }
   } catch (error) {
+    debug("Error expanding query with Gemini: %O", error);
     console.error("Error expanding query with Gemini:", error);
     throw new Error(`Failed to expand research query: ${error.message}`);
   }
@@ -50,6 +77,7 @@ const expandQuery = async (query) => {
  * @returns {Promise<Object>} - Research analysis in structured JSON format
  */
 const generateResearchAnalysis = async (originalQuery, processedPapers) => {
+  debug("Generating research analysis for query: %s", originalQuery);
   try {
     // Prepare paper data for the prompt
     const paperSummaries = [];
@@ -76,6 +104,12 @@ const generateResearchAnalysis = async (originalQuery, processedPapers) => {
         }
       });
     });
+
+    debug("Prepared %d paper summaries for analysis", paperSummaries.length);
+    if (paperSummaries.length === 0) {
+      debug("Warning: No valid papers found for analysis");
+      throw new Error("No valid papers found for analysis");
+    }
 
     // Create a prompt for Gemini to analyze the papers
     const prompt = `
@@ -132,19 +166,41 @@ const generateResearchAnalysis = async (originalQuery, processedPapers) => {
       Return ONLY the JSON object without any additional text.
     `;
 
+    debug(
+      "Sending analysis prompt to Gemini API (prompt length: %d characters)",
+      prompt.length
+    );
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
+    debug(
+      "Received analysis response from Gemini API (length: %d characters)",
+      text.length
+    );
 
     // Extract JSON from response
     const jsonMatch = text.match(/\{.*\}/s);
     if (!jsonMatch) {
+      debug(
+        "Failed to parse analysis from Gemini response: %s",
+        text.substring(0, 200) + (text.length > 200 ? "..." : "")
+      );
       throw new Error("Failed to parse analysis from Gemini response");
     }
 
-    const analysis = JSON.parse(jsonMatch[0]);
-    return analysis;
+    try {
+      const analysis = JSON.parse(jsonMatch[0]);
+      debug(
+        "Successfully parsed research analysis (keys: %s)",
+        Object.keys(analysis).join(", ")
+      );
+      return analysis;
+    } catch (parseError) {
+      debug("JSON parse error for analysis: %O", parseError);
+      throw new Error(`Failed to parse JSON analysis: ${parseError.message}`);
+    }
   } catch (error) {
+    debug("Error generating research analysis with Gemini: %O", error);
     console.error("Error generating research analysis with Gemini:", error);
     throw new Error(`Failed to generate research analysis: ${error.message}`);
   }
